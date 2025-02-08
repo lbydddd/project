@@ -76,10 +76,18 @@ def register():
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
-        flash('Registration successful! You can now log in.', 'success')
-        return redirect(url_for('login'))
+
+        # ✅ 关键修改：注册成功后，跳转到 `register_success` 页面
+        flash('Registration successful! Redirecting to login...', 'success')
+        return redirect(url_for('register_success'))
 
     return render_template('register.html')
+
+
+@app.route('/register_success')
+def register_success():
+    return render_template('register_success.html')
+
 
 
 @app.route('/dashboard')
