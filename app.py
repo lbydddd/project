@@ -51,14 +51,24 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user)
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid username or password', 'danger')
+
+        # ✅ 账户不存在
+        if not user:
+            flash('❌ Account does not exist. Please register first.', 'danger')
+            return redirect(url_for('login'))
+
+        # ✅ 密码错误
+        if not user.check_password(password):
+            flash('❌ Incorrect password. Please try again.', 'danger')
+            return redirect(url_for('login'))
+
+        # ✅ 登录成功
+        login_user(user)
+        flash('✅ Login successful!', 'success')
+        return redirect(url_for('dashboard'))
 
     return render_template('login.html')
+
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -68,24 +78,28 @@ def register():
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
 
+        # ✅ 检查账户是否已存在
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            flash('Username already exists. Please choose another one.', 'danger')
+            flash('❌ Username already exists. Please choose another one.', 'danger')
             return redirect(url_for('register'))
 
+        # ✅ 检查两次密码是否一致
         if password != confirm_password:
-            flash('Passwords do not match.', 'danger')
+            flash('❌ Passwords do not match. Please re-enter.', 'danger')
             return redirect(url_for('register'))
 
+        # 创建新用户
         new_user = User(username=username)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
 
-        flash('Registration successful! Redirecting to survey...', 'success')
-        return redirect(url_for('register_success', user_id=new_user.id))  # 跳转到调查问卷页面
+        flash('✅ Registration successful! Redirecting to survey...', 'success')
+        return redirect(url_for('register_success', user_id=new_user.id))
 
     return render_template('register.html')
+
 
 
 
