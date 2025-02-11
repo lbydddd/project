@@ -52,22 +52,20 @@ def login():
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
 
-        # ✅ 账户不存在
         if not user:
             flash('❌ Account does not exist. Please register first.', 'danger')
             return redirect(url_for('login'))
 
-        # ✅ 密码错误
         if not user.check_password(password):
             flash('❌ Incorrect password. Please try again.', 'danger')
             return redirect(url_for('login'))
 
-        # ✅ 登录成功
         login_user(user)
         flash('✅ Login successful!', 'success')
         return redirect(url_for('dashboard'))
 
     return render_template('login.html')
+
 
 
 
