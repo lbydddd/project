@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Dashboard - Account Alerts</title>
+</head>
+<body>
+    <h2>Account Alert System</h2>
+    <button onclick="connectWallet()">Connect Wallet</button>
+    <br><br>
+    <label>Transaction Amount (ETH):</label>
+    <input type="number" id="amount" step="0.01">
+    <button onclick="recordTransaction()">Submit Transaction</button>
+    <br><br>
+    <h3>Alert Logs:</h3>
+    <div id="alerts"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.0.1/web3.min.js"></script>
+    <script>
+        let contract;
+        let account;
+        const contractAddress = "0x6D361846A89A6D0EEb442aB4C14B8A5f271f6A5E";
+        const abi = [ /* ABI JSON */ ];
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                const web3 = new Web3(window.ethereum);
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                const accounts = await web3.eth.getAccounts();
+                account = accounts[0];
+                contract = new web3.eth.Contract(abi, contractAddress);
+                console.log("Wallet connected:", account);
+            } else {
+                alert("Please install MetaMask");
+            }
+        }
+
+        async function recordTransaction() {
+            const amount = document.getElementById("amount").value;
+            if (!contract || !account) {
+                alert("Please connect your wallet first");
+                return;
+            }
+
+            try {
+                const weiAmount = Web3.utils.toWei(amount, "ether");
+                await contract.methods.recordTransaction(weiAmount).send({ from: account });
+                alert("Transaction submitted successfully");
+            } catch (error) {
+                console.error("Transaction failed:", error);
+                alert("Transaction failed");
+            }
+        }
+
+        async function listenToAlerts() {
+            if (!contract) return;
+
+            contract.events.AlertTriggered({}).on("data", (event) => {
+                const log = event.returnValues.reason + " (Time: " + new Date(event.returnValues.timestamp * 1000).toLocaleString() + ")";
+                document.getElementById("alerts").innerHTML += "<p>" + log + "</p>";
+            }).on("error", (error) => {
+                console.error("Error listening to events:", error);
+            });
+        }
+
+        window.onload = listenToAlerts;
+    </script>
+</body>
+</html>
