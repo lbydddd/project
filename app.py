@@ -76,27 +76,25 @@ def register():
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
 
-        # ✅ 检查账户是否已存在
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash('❌ Username already exists. Please choose another one.', 'danger')
             return redirect(url_for('register'))
 
-        # ✅ 检查两次密码是否一致
         if password != confirm_password:
             flash('❌ Passwords do not match. Please re-enter.', 'danger')
             return redirect(url_for('register'))
 
-        # 创建新用户
         new_user = User(username=username)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
 
         flash('✅ Registration successful! Redirecting to survey...', 'success')
-        return redirect(url_for('register_success', user_id=new_user.id))
+        return redirect(url_for('register_success', user_id=new_user.id))  # ✅ 确保跳转
 
     return render_template('register.html')
+
 
 
 

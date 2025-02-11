@@ -28,16 +28,18 @@
     <div class="container">
         <h2>Register</h2>
 
-        <!-- ✅ 显示 Flash 消息 -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <p class="flash {{ category }}">{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+        <!-- ✅ 只在 POST 提交后显示 Flash 消息，避免页面刷新后重复 -->
+        {% if request.method == 'POST' %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <p class="flash {{ category }}">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        {% endif %}
 
         <!-- 注册表单 -->
         <form method="POST" action="{{ url_for('register') }}">
@@ -49,5 +51,15 @@
 
         <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
     </div>
+
+    <!-- ✅ 3秒后自动隐藏 Flash 消息 -->
+    <script>
+        setTimeout(function () {
+            let messages = document.querySelector(".flash-messages");
+            if (messages) {
+                messages.style.display = "none";
+            }
+        }, 3000);
+    </script>
 </body>
 </html>

@@ -5,13 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Successful</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .flash-messages {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .flash.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h2>Registration Successful!</h2>
+        <h2>Registration Successful</h2>
+
+        <!-- ✅ 只在 `register_success` 页面才显示 Flash 消息 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <p class="flash {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
         <p>Redirecting to survey...</p>
     </div>
 
+    <!-- ✅ 2秒后自动跳转到调查问卷页面 -->
     <script>
         setTimeout(function () {
             window.location.href = "{{ url_for('survey', user_id=user_id) }}";
