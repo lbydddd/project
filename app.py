@@ -2,11 +2,17 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_migrate import Migrate
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'  # 用于session加密
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # SQLite数据库
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # 获取当前目录路径
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(BASE_DIR, 'users.db')}"
+
 db = SQLAlchemy(app)
+migrate = Migrate(app, db) 
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -18,12 +24,14 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    survey_data = db.Column(db.Text, default="")  # ✅ 确保这行存在
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
 
 
 # 加载用户
@@ -60,34 +68,61 @@ def register():
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
 
-        # 检查用户名是否已存在
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash('Username already exists. Please choose another one.', 'danger')
             return redirect(url_for('register'))
 
-        # 确保两次密码输入一致
         if password != confirm_password:
             flash('Passwords do not match.', 'danger')
             return redirect(url_for('register'))
 
-        # 创建新用户
         new_user = User(username=username)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
 
-        # ✅ 关键修改：注册成功后，跳转到 `register_success` 页面
-        flash('Registration successful! Redirecting to login...', 'success')
-        return redirect(url_for('register_success'))
+        flash('Registration successful! Redirecting to survey...', 'success')
+        return redirect(url_for('register_success', user_id=new_user.id))  # 跳转到调查问卷页面
 
     return render_template('register.html')
 
 
-@app.route('/register_success')
-def register_success():
-    return render_template('register_success.html')
 
+@app.route('/register_success/<int:user_id>')
+def register_success(user_id):
+    return render_template('register_success.html', user_id=user_id)
+
+
+@app.route('/survey/<int:user_id>', methods=['GET', 'POST'])
+def survey(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('register'))
+
+    if request.method == 'POST':
+        # 获取表单数据
+        name = request.form.get('name')
+        age = request.form.get('age')
+        profession = request.form.get('profession')
+        investment_amount = request.form.get('investment_amount')
+        investment_duration = request.form.get('investment_duration')
+        risk_tolerance = request.form.get('risk_tolerance')
+
+        # 整合成一个文本字段
+        survey_text = f"Name: {name}; Age: {age}; Profession: {profession}; " \
+                      f"Investment Amount: {investment_amount}; Investment Duration: {investment_duration}; " \
+                      f"Risk Tolerance: {risk_tolerance}"
+
+        # 存入数据库
+        user.survey_data = survey_text
+        db.session.commit()
+
+        flash('Survey submitted successfully! Redirecting to login...', 'success')
+        return redirect(url_for('login'))  # 填写完后跳转到登录页面
+
+    return render_template('survey.html', user_id=user_id)
 
 
 @app.route('/dashboard')

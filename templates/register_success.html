@@ -8,22 +8,13 @@
 </head>
 <body>
     <div class="container">
-        <!-- 显示注册成功的 Flash 消息 -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <p class="flash {{ category }}">{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+        <h2>Registration Successful!</h2>
+        <p>Redirecting to survey...</p>
     </div>
 
-    <!-- 2 秒后自动跳转到登录页面 -->
     <script>
         setTimeout(function () {
-            window.location.href = "{{ url_for('login') }}";
+            window.location.href = "{{ url_for('survey', user_id=user_id) }}";
         }, 2000);
     </script>
 </body>

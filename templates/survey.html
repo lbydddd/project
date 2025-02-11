@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Survey</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Investment Survey</h2>
+        <form method="POST" action="{{ url_for('survey', user_id=user_id) }}">
+            <label for="name">Name:</label>
+            <input type="text" name="name" required>
+
+            <label for="age">Age:</label>
+            <input type="number" name="age" required>
+
+            <label for="profession">Profession:</label>
+            <input type="text" name="profession" required>
+
+            <label>Investment Amount:</label>
+            <select name="investment_amount" required>
+                <option value="Below 100K">Below 100K</option>
+                <option value="100K - 500K">100K - 500K</option>
+                <option value="500K - 1M">500K - 1M</option>
+                <option value="Above 1M">Above 1M</option>
+            </select>
+
+            <label>Investment Duration:</label>
+            <select name="investment_duration" required>
+                <option value="Less than 1 year">Less than 1 year</option>
+                <option value="1-3 years">1-3 years</option>
+                <option value="3-5 years">3-5 years</option>
+                <option value="More than 5 years">More than 5 years</option>
+            </select>
+
+            <label>Risk Tolerance:</label>
+            <select name="risk_tolerance" required>
+                <option value="Risk-averse">Risk-averse</option>
+                <option value="Conservative">Conservative</option>
+                <option value="Balanced">Balanced</option>
+                <option value="Aggressive">Aggressive</option>
+                <option value="Very aggressive">Very aggressive</option>
+            </select>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
