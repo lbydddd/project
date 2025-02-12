@@ -18,30 +18,25 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"  
 
-
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     survey_data = db.Column(db.Text, default="")  
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
-
-# 加载用户
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
 @app.route('/')
 def home():
     return redirect(url_for('login'))
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -63,9 +58,6 @@ def login():
         return redirect(url_for('dashboard'))
 
     return render_template('login.html')
-
-
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -89,18 +81,13 @@ def register():
         db.session.commit()
 
         flash('✅ Registration successful! Redirecting to survey...', 'success')
-        return redirect(url_for('register_success', user_id=new_user.id))  # ✅ 确保跳转
+        return redirect(url_for('register_success', user_id=new_user.id))
 
     return render_template('register.html')
-
-
-
-
 
 @app.route('/register_success/<int:user_id>')
 def register_success(user_id):
     return render_template('register_success.html', user_id=user_id)
-
 
 @app.route('/survey/<int:user_id>', methods=['GET', 'POST'])
 def survey(user_id):
@@ -129,7 +116,6 @@ def survey(user_id):
 
     return render_template('survey.html', user_id=user_id)
 
-
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -143,13 +129,12 @@ def stock_analysis():
 @app.route('/money_transfer')
 @login_required
 def money_transfer():
-    return "Money Transfer Page (Coming Soon)"
+    return render_template("index.html")
 
 @app.route('/ai_assistant')
 @login_required
 def ai_assistant():
     return "AI Assistant Page (Coming Soon)"
-
 
 @app.route('/logout')
 @login_required
@@ -158,11 +143,8 @@ def logout():
     flash('Logged out successfully!', 'info')
     return redirect(url_for('login'))
 
-
 with app.app_context():
     db.create_all()
 
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
-
