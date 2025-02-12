@@ -10,7 +10,11 @@ from datetime import datetime
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from flask import  session
 import sqlite3
-
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+from a_stock_analysis import get_stock_info, predict_stock_trend
+from generative_ai import summarize_stock_trend
 
 
 
@@ -133,10 +137,16 @@ def survey(user_id):
 def dashboard():
     return render_template('dashboard.html', username=current_user.username)
 
-@app.route('/stock_analysis')
+@app.route('/sentiment_analysis')
+@login_required
+def sentiment_analysis():
+   return render_template("b_index.html")
+
+
+@app.route('/stock_analysis', methods=["GET", "POST"])
 @login_required
 def stock_analysis():
-    return "Stock Analysis Page (Coming Soon)"
+   return render_template("search.html")
 
 @app.route('/money_transfer')
 @login_required
@@ -154,6 +164,134 @@ def logout():
 
 
 
+# ------Sentiment Analysis Start---------
+
+
+API_KEY = "YOUR_API_KEY"  # 确保 API Key 可用
+
+
+def get_stock_news_sentiment(ticker, api_key, news_count=20):
+   """ 获取股票新闻情感数据 """
+   url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={ticker}&limit={news_count}&apikey={api_key}"
+   response = requests.get(url)
+   data = response.json()
+  
+   if "feed" in data:
+       news_list = data["feed"][:news_count]
+       news_data = []
+      
+       for news in news_list:
+           title = news.get("title", "N/A")
+           url = news.get("url", "N/A")
+           sentiment_score = float(news.get("overall_sentiment_score", 0))
+           relevance_score = float(news.get("relevance_score", 0.5))
+
+
+           ticker_sentiment_score = 0
+           ticker_relevance_score = 0
+           for sentiment in news.get("ticker_sentiment", []):
+               if sentiment["ticker"] == ticker:
+                   ticker_sentiment_score = float(sentiment.get("ticker_sentiment_score", 0))
+                   ticker_relevance_score = float(sentiment.get("relevance_score", 0.5))
+                   break
+
+
+           final_sentiment_score = ticker_sentiment_score if ticker_relevance_score > 0 else sentiment_score
+
+
+           news_data.append({
+               "title": title,
+               "url": url,
+               "sentiment_score": final_sentiment_score,
+               "relevance_score": ticker_relevance_score if ticker_relevance_score > 0 else relevance_score
+           })
+      
+       return pd.DataFrame(news_data)
+  
+   return pd.DataFrame()
+
+
+def generate_sentiment_plot(df, ticker):
+   """ 生成情感分析图 """
+   if df.empty:
+       return None
+
+
+   SENTIMENT_THRESHOLD = 0.1
+   RELEVANCE_THRESHOLD = 0.5
+
+
+   weighted_sentiment_score = (df["sentiment_score"] * df["relevance_score"]).sum() / df["relevance_score"].sum()
+
+
+   plt.figure(figsize=(8, 6))
+   colors = ['red' if (s > SENTIMENT_THRESHOLD and r > RELEVANCE_THRESHOLD) else 'blue'
+             for s, r in zip(df["sentiment_score"], df["relevance_score"])]
+
+
+   plt.scatter(df["relevance_score"], df["sentiment_score"], c=colors, alpha=0.7, edgecolors='k', label="News Data")
+   plt.axhline(y=SENTIMENT_THRESHOLD, color='gray', linestyle='--', linewidth=1, label=f"Sentiment Threshold: {SENTIMENT_THRESHOLD}")
+   plt.axvline(x=RELEVANCE_THRESHOLD, color='gray', linestyle='--', linewidth=1, label=f"Relevance Threshold: {RELEVANCE_THRESHOLD}")
+
+
+   plt.xlabel("Relevance Score", fontsize=12)
+   plt.ylabel("Sentiment Score", fontsize=12)
+   plt.title(f"{ticker} Sentiment Analysis\n Weighted Sentiment Score: {weighted_sentiment_score:.3f}", fontsize=14)
+   plt.legend()
+
+
+   img_path = f"static/{ticker}_sentiment_plot.png"
+   plt.savefig(img_path, format='png', bbox_inches='tight')
+   plt.close()
+
+
+   return img_path
+
+
+@app.route("/get_news", methods=["POST"])
+@login_required
+def get_news():
+   ticker = request.form.get("ticker", "").upper()
+
+
+   if not ticker:
+       return jsonify({"error": "Stock ticker is required"}), 400
+
+
+   news_df = get_stock_news_sentiment(ticker, API_KEY)
+
+
+   if news_df.empty:
+       return jsonify({"error": "No news found"}), 404
+
+
+   img_path = generate_sentiment_plot(news_df, ticker)
+   news_json = news_df.to_dict(orient="records")
+  
+   return jsonify({"ticker": ticker, "news": news_json, "plot_url": img_path})
+
+
+# ------Stock Analysis Start---------
+
+
+
+
+@app.route("/stock_trend_analysis", methods=["GET", "POST"])
+def stock_trend_analysis():
+   stock_data = None
+   prediction = None
+   trend_summary = None
+   future_trend_plot = None
+  
+   if request.method == "POST":
+       stock_symbol = request.form.get("stock_symbol").upper()
+       stock_data = get_stock_info(stock_symbol)
+       prediction, future_trend_plot = predict_stock_trend(stock_symbol)
+       trend_summary = summarize_stock_trend(stock_symbol)
+
+
+   return render_template("search.html", stock_data=stock_data, prediction=prediction, trend_summary=trend_summary,
+                          future_trend_plot=future_trend_plot)
 
 
 # ------Chatbot Start---------

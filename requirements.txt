@@ -3,9 +3,11 @@ flask-sqlalchemy
 flask-login
 werkzeug
 flask_migrate
-sqlite3
 flask-cors
 google-generativeai
 vaderSentiment
 gunicorn
 flask_sqlalchemy
+transformers
+yfinance
+statsmodels

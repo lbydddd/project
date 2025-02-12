@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Stock Analysis</title>
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <style>
+       table {
+           width: 100%;
+           border-collapse: collapse;
+           margin-bottom: 20px;
+       }
+       th, td {
+           border: 1px solid black;
+           padding: 8px;
+           text-align: left;
+       }
+   </style>
+</head>
+<body>
+   <div class="container">
+       <h2>Stock Analysis</h2>
+       <form action="/stock_trend_analysis" method="POST">
+           <input type="text" name="stock_symbol" placeholder="e.g. AAPL, TSLA, MSFT" required>
+           <button type="submit">Search</button>
+       </form>
+
+
+       {% if stock_data %}
+           <h2>{{ stock_data.name }} ({{ stock_data.symbol }})</h2>
+          
+           <h3>Key Evaluation Metrics</h3>
+           <table>
+               <tr>
+                   <th>Market Cap</th>
+                   <th>P/B Ratio</th>
+                   <th>P/E Ratio</th>
+                   <th>EPS</th>
+               </tr>
+               <tr>
+                   <td>${{ stock_data.key_metrics["Market Cap"] }}</td>
+                   <td>{{ stock_data.key_metrics["P/B Ratio"] }}</td>
+                   <td>{{ stock_data.key_metrics["P/E Ratio"] }}</td>
+                   <td>{{ stock_data.key_metrics["EPS"] }}</td>
+               </tr>
+           </table>
+
+
+           <h3>Stock Price Trends</h3>
+           <img class="image-class" src="data:image/png;base64,{{ stock_data.plot_url }}" alt="Stock Chart (1 Year)">
+           <img class="image-class" src="data:image/png;base64,{{ stock_data.plot_url_month }}" alt="Stock Chart (1 Month)">
+          
+           <h3>Stock Trend Analysis</h3>
+           <p>{{ trend_summary }}</p>
+          
+           <h3>AI Prediction</h3>
+           <p>{{ prediction }}</p>
+           <img class="image-class" src="data:image/png;base64,{{ future_trend_plot }}" alt="Future Stock Chart">
+       {% endif %}
+   </div>
+</body>
+</html>
