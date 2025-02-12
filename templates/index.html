@@ -51,14 +51,4 @@
         <button onclick="recordTransaction()">💰 Submit Transaction</button>
     </div>
 
-    <script>
-        let contract;
-        let account;
-        const contractAddress = "0x6D361846A89A6D0EEb442aB4C14B8A5f271f6A5E";
-        const abi = [
-            {
-                "inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}],
-                "name": "recordTransaction",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
+    <script> let contract; let account; const contractAddress = "0x6D361846A89A6D0EEb442aB4C14B8A5f271f6A5E"; const abi = [ { "inputs": [{"internalType": "uint256", "name": "amount", "type": "uint256"}], "name": "recordTransaction", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" }, { "inputs": [], "name": "owner", "outputs": [{"internalType": "address", "name": "", "type": "address"}], "stateMutability": "view", "type": "function" }, { "inputs": [ {"internalType": "address", "name": "", "type": "address"}, {"internalType": "uint256", "name": "", "type": "uint256"} ], "name": "userTransactions", "outputs": [ {"internalType": "uint256", "name": "amount", "type": "uint256"}, {"internalType": "uint256", "name": "timestamp", "type": "uint256"} ], "stateMutability": "view", "type": "function" } ]; async function connectWallet() { if (window.ethereum) { const web3 = new Web3(window.ethereum); await window.ethereum.request({ method: "eth_requestAccounts" }); const accounts = await web3.eth.getAccounts(); account = accounts[0]; contract = new web3.eth.Contract(abi, contractAddress); console.log("Wallet connected:", account); alert("Wallet connected: " + account); } else { alert("Please install MetaMask"); } } async function recordTransaction() { const amount = document.getElementById("amount").value; if (!contract || !account) { alert("Please connect your wallet first"); return; } try { const weiAmount = Web3.utils.toWei(amount, "ether"); await contract.methods.recordTransaction(weiAmount).send({ from: account }); alert("✅ Transaction submitted successfully!"); } catch (error) { console.error("Transaction failed:", error); alert("❌ Transaction failed"); } } </script> </body> </html>
