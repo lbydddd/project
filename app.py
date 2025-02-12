@@ -165,7 +165,7 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 analyzer = SentimentIntensityAnalyzer()
 
 # Keywords indicating a user request for human support
-TRANSFER_KEYWORDS = ["human support", "talk to an agent", "live agent", "customer service", "speak to a representative"]
+TRANSFER_KEYWORDS = ["human support", "human agent", "talk to an agent", "live agent", "customer service", "speak to a representative"]
 
 # Define the conversation database model
 class Conversation(db.Model):
