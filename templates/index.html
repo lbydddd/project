@@ -2,25 +2,41 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Dashboard - Account Alerts</title>
+    <title>Financial Dashboard - Simple Transactions</title>
 </head>
 <body>
-    <h2>Account Alert System</h2>
+    <h2>Simple Transaction System</h2>
     <button onclick="connectWallet()">Connect Wallet</button>
     <br><br>
     <label>Transaction Amount (ETH):</label>
     <input type="number" id="amount" step="0.01">
     <button onclick="recordTransaction()">Submit Transaction</button>
-    <br><br>
-    <h3>Alert Logs:</h3>
-    <div id="alerts"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.0.1/web3.min.js"></script>
     <script>
         let contract;
         let account;
         const contractAddress = "0x6D361846A89A6D0EEb442aB4C14B8A5f271f6A5E";
-        const abi = [ /* ABI JSON */ ];
+        const abi = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "amount",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "recordTransaction",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
 
         async function connectWallet() {
             if (window.ethereum) {
@@ -51,19 +67,6 @@
                 alert("Transaction failed");
             }
         }
-
-        async function listenToAlerts() {
-            if (!contract) return;
-
-            contract.events.AlertTriggered({}).on("data", (event) => {
-                const log = event.returnValues.reason + " (Time: " + new Date(event.returnValues.timestamp * 1000).toLocaleString() + ")";
-                document.getElementById("alerts").innerHTML += "<p>" + log + "</p>";
-            }).on("error", (error) => {
-                console.error("Error listening to events:", error);
-            });
-        }
-
-        window.onload = listenToAlerts;
     </script>
 </body>
 </html>
