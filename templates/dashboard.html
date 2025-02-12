@@ -5,12 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .container {
+            max-width: 500px;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .menu a {
+            text-decoration: none;
+        }
+        .menu button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .menu button:hover {
+            background-color: #0056b3;
+        }
+        .logout {
+            margin-top: 20px;
+            color: red;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Welcome, {{ username }}!</h2>
-        <p>You are successfully logged in.</p>
-        <a href="{{ url_for('logout') }}"><button>Logout</button></a>
+        <p>Select an option below:</p>
+
+        <div class="menu">
+            <a href="{{ url_for('stock_analysis') }}"><button>📈 Stock Analysis</button></a>
+            <a href="{{ url_for('money_transfer') }}"><button>💰 Money Transfer</button></a>
+            <a href="{{ url_for('ai_assistant') }}"><button>🤖 AI Assistant</button></a>
+        </div>
+
+        <a href="{{ url_for('logout') }}" class="logout">🚪 Logout</a>
     </div>
 </body>
 </html>
+

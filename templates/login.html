@@ -28,18 +28,16 @@
     <div class="container">
         <h2>Login</h2>
 
-        <!-- ✅ 只有在 POST 请求后才显示 Flash 消息 -->
-        {% if request.method == 'POST' %}
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flash-messages">
-                        {% for category, message in messages %}
-                            <p class="flash {{ category }}">{{ message }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
-        {% endif %}
+        <!-- ✅ 让 Flash 消息无论 GET 还是 POST 都能显示 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <p class="flash {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
         <!-- 登录表单 -->
         <form method="POST" action="{{ url_for('login') }}">

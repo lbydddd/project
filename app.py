@@ -6,9 +6,9 @@ from flask_migrate import Migrate
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'  # 用于session加密
+app.config['SECRET_KEY'] = 'your_secret_key'  
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # 获取当前目录路径
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))  
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(BASE_DIR, 'users.db')}"
 
 db = SQLAlchemy(app)
@@ -16,16 +16,14 @@ migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"  # 如果未登录，会跳转到此视图
+login_manager.login_view = "login"  
 
 
-# 用户模型
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    survey_data = db.Column(db.Text, default="")  # ✅ 确保这行存在
-
+    survey_data = db.Column(db.Text, default="")  
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -112,7 +110,6 @@ def survey(user_id):
         return redirect(url_for('register'))
 
     if request.method == 'POST':
-        # 获取表单数据
         name = request.form.get('name')
         age = request.form.get('age')
         profession = request.form.get('profession')
@@ -120,17 +117,15 @@ def survey(user_id):
         investment_duration = request.form.get('investment_duration')
         risk_tolerance = request.form.get('risk_tolerance')
 
-        # 整合成一个文本字段
         survey_text = f"Name: {name}; Age: {age}; Profession: {profession}; " \
                       f"Investment Amount: {investment_amount}; Investment Duration: {investment_duration}; " \
                       f"Risk Tolerance: {risk_tolerance}"
 
-        # 存入数据库
         user.survey_data = survey_text
         db.session.commit()
 
         flash('Survey submitted successfully! Redirecting to login...', 'success')
-        return redirect(url_for('login'))  # 填写完后跳转到登录页面
+        return redirect(url_for('login')) 
 
     return render_template('survey.html', user_id=user_id)
 
@@ -139,6 +134,21 @@ def survey(user_id):
 @login_required
 def dashboard():
     return render_template('dashboard.html', username=current_user.username)
+
+@app.route('/stock_analysis')
+@login_required
+def stock_analysis():
+    return "Stock Analysis Page (Coming Soon)"
+
+@app.route('/money_transfer')
+@login_required
+def money_transfer():
+    return "Money Transfer Page (Coming Soon)"
+
+@app.route('/ai_assistant')
+@login_required
+def ai_assistant():
+    return "AI Assistant Page (Coming Soon)"
 
 
 @app.route('/logout')
@@ -149,7 +159,6 @@ def logout():
     return redirect(url_for('login'))
 
 
-# 初始化数据库（首次运行时执行一次）
 with app.app_context():
     db.create_all()
 
