@@ -8,7 +8,8 @@ import google.generativeai as genai
 import os
 from datetime import datetime
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-
+from flask import  session
+import sqlite3
 
 
 
@@ -178,32 +179,49 @@ def chatbot():
     """Serve the frontend HTML page."""
     return render_template("chatbot.html")
 
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
     """Handle user chat requests."""
     data = request.json
     user_message = data.get("message", "").lower()  # Convert to lowercase for keyword matching
+    username = data.get("username")  # 假设前端会传递用户名
 
-    # Perform sentiment analysis
-    sentiment_score = analyzer.polarity_scores(user_message)["compound"]
+    # 连接数据库，查询用户信息
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    
+    # 查询用户的 survey_data
+    cursor.execute("SELECT survey_data FROM user WHERE username = ?", (username,))
+    user_data = cursor.fetchone()
+    conn.close()
 
-    # Generate AI response using Gemini API
-    response = model.generate_content(user_message)
+    # 解析用户基本信息
+    if user_data and user_data[0]:
+        user_info = f"User Profile: {user_data[0]}\n"
+    else:
+        user_info = "User Profile: No additional information available.\n"
+
+    # 生成 AI prompt
+    prompt = f"Consider the following user profile when answering:\n{user_info}\nUser's message: {user_message}"
+
+
+    # 生成 AI 响应
+    response = model.generate_content(prompt)
     ai_reply = response.text if response else "Sorry, I couldn't understand your message."
 
-
-    # **Check if human support is needed**
+    # **检查是否需要人工客服**
+    sentiment_score = analyzer.polarity_scores(user_message)["compound"]
     if sentiment_score < -0.5 or any(keyword in user_message for keyword in TRANSFER_KEYWORDS):
         ai_reply = "💬 It looks like you may need assistance from a human agent.<br>⏰ Our customer support is available from 9:00 AM to 6:00 PM.<br>You can contact us at (65)12345678"
 
-    # Store the conversation in SQLite
+    # 存储对话记录
     new_conversation = Conversation(user_message=user_message, bot_response=ai_reply)
     db.session.add(new_conversation)
     db.session.commit()
 
     return jsonify({"response": ai_reply})
-
-
 
 # ------Chatbot End---------
 

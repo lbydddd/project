@@ -3,7 +3,7 @@ flask-sqlalchemy
 flask-login
 werkzeug
 flask_migrate
-
+sqlite3
 flask-cors
 google-generativeai
 vaderSentiment

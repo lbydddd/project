@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Asistant</title>
+    <title>AI Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
@@ -13,6 +13,10 @@
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Enter your question..." />
             <button onclick="sendMessage()">Send</button>
+        </div>
+        <!-- Back to Main Menu Button -->
+        <div class="menu-button">
+            <button onclick="goToMainMenu()">Back to Main Menu</button>
         </div>
     </div>
 
@@ -24,20 +28,31 @@
 
             if (!userMessage) return;
 
-            chatBox.innerHTML += `<div><strong>You:</strong> ${userMessage}</div>`;
+            // 用户消息
+            chatBox.innerHTML += `<div class="user-message"><strong>You:</strong> ${userMessage}</div>`;
 
             fetch("/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: userMessage }),
+                body: JSON.stringify({
+                    message: userMessage,
+                    username: localStorage.getItem("username")
+                }),
             })
             .then(response => response.json())
             .then(data => {
-                chatBox.innerHTML += `<div><strong>Agent:</strong> ${data.response}</div>`;
+                // AI 响应
+                chatBox.innerHTML += `<div class="ai-message"><strong>AI Assistant:</strong> ${data.response}</div>`;
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
 
             inputBox.value = "";
+        }
+
+
+
+        function goToMainMenu() {
+            window.location.href = "/"; // Change this if the main menu is at a different URL
         }
     </script>
 </body>
